@@ -4,11 +4,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const categoryFilter = document.getElementById('category-filter');
     const searchInput = document.getElementById('search-input');
     let currentPage = 1;
-    const itemsPerPage = 10;
-    const maxPageButtons = 5;
+    const itemsPerPage = 25;
+    const maxPageButtons = 10;
     let games = [];
     let filteredGames = [];
-    let categoryRankedGames = [];
+    let categoryFilteredGames = [];
 
     let totalChunks = 0;
     let loadedChunks = 0;
@@ -86,21 +86,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedCategory = categoryFilter.value;
         const searchQuery = searchInput.value.toLowerCase();
 
-        filteredGames = games.filter(game => {
-            const matchesCategory = selectedCategory === 'all' || game.categories.includes(selectedCategory);
-            const matchesSearch = game.name.toLowerCase().includes(searchQuery);
-            return matchesCategory && matchesSearch;
-        });
-
-        if (selectedCategory !== 'all') {
-            // Calculate category rank
-            categoryRankedGames = filteredGames.map((game, index) => ({
-                ...game,
-                categoryRank: index + 1
-            }));
+        if (selectedCategory === 'all') {
+            categoryFilteredGames = games;
         } else {
-            categoryRankedGames = [];
+            categoryFilteredGames = games.filter(game => game.categories.includes(selectedCategory))
+                .map((game, index) => ({ ...game, categoryRank: index + 1 }));
         }
+
+        filteredGames = categoryFilteredGames.filter(game => game.name.toLowerCase().includes(searchQuery));
 
         currentPage = 1;
         renderPage();
@@ -112,13 +105,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const end = start + itemsPerPage;
         const pageItems = filteredGames.slice(start, end);
 
-        pageItems.forEach((game, index) => {
+        pageItems.forEach((game) => {
             const gameCardWrapper = document.createElement('div');
             gameCardWrapper.classList.add('game-card-wrapper');
 
             const rankNumber = document.createElement('div');
             rankNumber.classList.add('rank-number');
-            rankNumber.textContent = categoryFilter.value === 'all' ? game.rank || 'Unranked' : categoryRankedGames.find(g => g.name === game.name)?.categoryRank || 'Unranked';
+            // Display category rank if available, otherwise display overall rank
+            rankNumber.textContent = categoryFilter.value === 'all' ? game.rank || 'Unranked' : game.categoryRank || 'Unranked';
 
             const gameCard = document.createElement('div');
             gameCard.classList.add('game');
