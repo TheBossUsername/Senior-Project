@@ -1,0 +1,161 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 20px;
+}
+
+.filter-container {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.filter-container label {
+    margin-right: 10px;
+    font-size: 16px;
+}
+
+.filter-container select {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.game-card-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    max-width: 800px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    position: relative;
+}
+
+.rank-number {
+    font-size: 72px;
+    font-weight: bold;
+    color: #000000;
+    margin-right: 20px;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.game {
+    text-align: center;
+    flex-grow: 1;
+}
+
+.game-title {
+    font-size: 50px;
+    font-weight: bold;
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.game-content {
+    display: flex;
+    align-items: center;
+}
+
+.game img {
+    max-width: 150px;
+    height: auto;
+    border-radius: 4px;
+    margin-right: 20px;
+}
+
+.game-info {
+    text-align: left;
+}
+
+.game-info p {
+    margin: 5px 0;
+}
+
+.game-info p strong {
+    font-weight: bold;
+}
+
+.game-rating, .game-complexity, .game-players, .game-playing-time, .game-age, .game-categories {
+    font-size: 16px;
+    color: #555;
+    margin-top: 10px;
+}
+
+.pagination {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.page-numbers {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.page-numbers button {
+    margin: 2px;
+    padding: 10px 15px;
+    background-color: #007bff;
+    border: none;
+    color: white;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.page-numbers button.active {
+    background-color: #0056b3;
+    font-weight: bold;
+}
+
+.page-numbers button.disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.nav-buttons {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.nav-buttons button {
+    margin: 0 5px;
+    padding: 10px 15px;
+    background-color: #007bff;
+    border: none;
+    color: white;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+
+.search-container {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+#search-input {
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 50%;
+    outline: none;
+}
