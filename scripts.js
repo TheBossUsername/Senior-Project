@@ -7,9 +7,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('search-input');
     const toggleAdvancedSearchButton = document.getElementById('toggle-advanced-search');
     const advancedSearch = document.getElementById('advanced-search');
-    const applyFiltersButton = document.getElementById('apply-filters');
     const clearFiltersButton = document.getElementById('clear-filters');
     const itemsPerPageSelect = document.getElementById('items-per-page');
+    let pageNumberSelected = false;
     let currentPage = 1;
     let itemsPerPage = 25;  // Default items per page
     const maxPageButtons = 5;
@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let totalChunks = 0;
     let loadedChunks = 0;
+    
 
     function fetchTotalChunks() {
         return fetch('chunk_count.json')
@@ -122,39 +123,39 @@ document.addEventListener('DOMContentLoaded', function() {
         const start = (currentPage - 1) * itemsPerPage;
         const end = start + itemsPerPage;
         const pageItems = filteredGamesToRender.slice(start, end);
-
+    
         pageItems.forEach(game => {
             const gameCardWrapper = document.createElement('div');
             gameCardWrapper.classList.add('game-card-wrapper');
-
+    
             const rankNumber = document.createElement('div');
             rankNumber.classList.add('rank-number');
             rankNumber.textContent = game.categoryRank || game.rank || 'Unranked';
-
+    
             const gameCard = document.createElement('div');
             gameCard.classList.add('game');
-
+    
             const gameTitle = document.createElement('h3');
             gameTitle.classList.add('game-title');
             gameTitle.textContent = game.name || 'No Name Provided';
-
+    
             const gameContent = document.createElement('div');
             gameContent.classList.add('game-content');
-
+    
             const gameImg = document.createElement('img');
             gameImg.src = game.thumbnail || 'default-thumbnail.png';
             gameImg.alt = game.name || 'No Image';
-
+    
             const gameInfo = document.createElement('div');
             gameInfo.classList.add('game-info');
-
+    
             const rating = game.bayes_average ? (game.bayes_average).toFixed(1) : (game.average ? (game.average).toFixed(1) : 'Unrated');
             const complexity = game.average_weight ? `<strong>Complexity:</strong> ${(game.average_weight * 2).toFixed(1)} / 10` : '<strong>Complexity:</strong> Unspecified';
             const players = game.min_players && game.max_players ? `<strong>Players:</strong> ${game.min_players} - ${game.max_players}` : '<strong>Players: Unspecified</strong>';
             const playingTime = game.playing_time ? `<strong>Playing Time:</strong> ${game.playing_time} mins` : '<strong>Playing Time: Unspecified</strong>';
             const age = game.age ? `<strong>Recommended Age:</strong> ${game.age}` : '<strong>Recommended Age: Unspecified</strong>';
             const categoriesText = game.categories.length ? game.categories.join(', ') : 'Not specified';
-
+    
             const gameDetails = `
                 <p class="game-rating"><strong>Rating:</strong> ${rating} / 10</p>
                 <p class="game-complexity">${complexity}</p>
@@ -163,16 +164,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 <p class="game-age">${age}</p>
                 <p class="game-categories"><strong>Categories:</strong> ${categoriesText}</p>
             `;
-
+    
             gameInfo.innerHTML = gameDetails;
-
-            if (categoryFilter.value !== 'all') {
+    
+            if (categoryFilter.value !== 'all' || mechanicsFilter.value !== 'all') {
                 const gameRank = document.createElement('p');
                 gameRank.classList.add('game-rank');
-                gameRank.innerHTML = `<strong>Overall Rank:</strong> ${game.rank || 'Unranked'}`;
+                gameRank.innerHTML = `<p class="game-overall"><strong>Overall Rank:</strong> ${game.rank || 'Unranked'}</p>`;
                 gameInfo.appendChild(gameRank);
             }
-
+    
             gameContent.appendChild(gameImg);
             gameContent.appendChild(gameInfo);
             gameCard.appendChild(gameTitle);
@@ -181,9 +182,20 @@ document.addEventListener('DOMContentLoaded', function() {
             gameCardWrapper.appendChild(gameCard);
             container.appendChild(gameCardWrapper);
         });
-
+    
         renderPagination(filteredGamesToRender);
+    
+        // Scroll to the top based on the condition
+        if (pageNumberSelected) {
+            topPagination.scrollIntoView({ behavior: 'instant' });
+        } else {
+            window.scrollTo(0,0,{ behavior: 'instant' });
+        }
+    
+        // Reset the flag
+        pageNumberSelected = false;
     }
+    
 
     function renderPagination(filteredGamesToRender) {
         topPagination.innerHTML = '';
@@ -253,6 +265,7 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', () => {
             if (!button.classList.contains('disabled')) {
                 currentPage = page;
+                pageNumberSelected = true; 
                 renderPage();
             }
         });
@@ -277,7 +290,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     searchInput.addEventListener('input', () => applySearch(searchInput.value));
-    applyFiltersButton.addEventListener('click', applyFilter);
     clearFiltersButton.addEventListener('click', clearFilters);
 
     itemsPerPageSelect.addEventListener('change', (event) => {

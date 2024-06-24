@@ -106,7 +106,7 @@ body {
     justify-content: flex-start;
 }
 
-.game-rating, .game-complexity, .game-players, .game-playing-time, .game-age, .game-categories, .game-rank {
+.game-rating, .game-complexity, .game-players, .game-playing-time, .game-age, .game-categories, .game-rank, .game-overall {
     font-size: 16px;
     color: #000000;
 }
