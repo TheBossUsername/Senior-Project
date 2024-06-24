@@ -1,11 +1,18 @@
 document.addEventListener('DOMContentLoaded', function() {
     const container = document.getElementById('game-list');
-    const pagination = document.getElementById('pagination');
+    const topPagination = document.getElementById('top-pagination');
+    const bottomPagination = document.getElementById('bottom-pagination');
     const categoryFilter = document.getElementById('category-filter');
+    const mechanicsFilter = document.getElementById('mechanics-filter');
     const searchInput = document.getElementById('search-input');
+    const toggleAdvancedSearchButton = document.getElementById('toggle-advanced-search');
+    const advancedSearch = document.getElementById('advanced-search');
+    const applyFiltersButton = document.getElementById('apply-filters');
+    const clearFiltersButton = document.getElementById('clear-filters');
+    const itemsPerPageSelect = document.getElementById('items-per-page');
     let currentPage = 1;
-    const itemsPerPage = 25;
-    const maxPageButtons = 10;
+    let itemsPerPage = 25;  // Default items per page
+    const maxPageButtons = 5;
     let games = [];
     let filteredGames = [];
     let categoryFilteredGames = [];
@@ -41,7 +48,8 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 games = games.concat(data.map(game => ({
                     ...game,
-                    categories: game.categories ? game.categories.split(',').map(c => c.trim()) : []
+                    categories: game.categories ? game.categories.split(',').map(c => c.trim()) : [],
+                    mechanics: game.mechanics ? game.mechanics.split(',').map(m => m.trim()) : []
                 })));
                 loadedChunks++;
                 if (loadedChunks === totalChunks) {
@@ -54,65 +62,74 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function loadChunks() {
-        for (let i = 1; i <= totalChunks; i++) {  // Start from 1 instead of 0
+        for (let i = 1; i <= totalChunks; i++) {
             fetchChunk(i);
         }
     }
 
     function processGamesData() {
-        games.sort((a, b) => (a.rank || Infinity) - (b.rank || Infinity));  // Sort games by rank
-        populateCategoryFilter();
+        games.sort((a, b) => (a.rank || Infinity) - (b.rank || Infinity));
+        populateFilters();
         applyFilter();
     }
 
-    fetchTotalChunks();
-
-    categoryFilter.addEventListener('change', applyFilter);
-    searchInput.addEventListener('input', applyFilter);
-
-    function populateCategoryFilter() {
-        const categories = [...new Set(games.flatMap(game => game.categories || []))]
-            .sort((a, b) => a.localeCompare(b)); // Sort categories alphabetically
-
+    function populateFilters() {
+        const categories = [...new Set(games.flatMap(game => game.categories || []))].sort((a, b) => a.localeCompare(b));
         categories.forEach(category => {
             const option = document.createElement('option');
             option.value = category;
             option.textContent = category;
             categoryFilter.appendChild(option);
         });
+
+        const mechanics = [...new Set(games.flatMap(game => game.mechanics || []))].sort((a, b) => a.localeCompare(b));
+        mechanics.forEach(mechanic => {
+            const option = document.createElement('option');
+            option.value = mechanic;
+            option.textContent = mechanic;
+            mechanicsFilter.appendChild(option);
+        });
     }
+
+    categoryFilter.addEventListener('change', applyFilter);
+    mechanicsFilter.addEventListener('change', applyFilter);
 
     function applyFilter() {
         const selectedCategory = categoryFilter.value;
-        const searchQuery = searchInput.value.toLowerCase();
-
-        if (selectedCategory === 'all') {
-            categoryFilteredGames = games;
-        } else {
-            categoryFilteredGames = games.filter(game => game.categories.includes(selectedCategory))
-                .map((game, index) => ({ ...game, categoryRank: index + 1 }));
-        }
-
-        filteredGames = categoryFilteredGames.filter(game => game.name.toLowerCase().includes(searchQuery));
-
+        const selectedMechanic = mechanicsFilter.value;
+        filteredGames = games.filter(game => {
+            const categoryMatch = selectedCategory === 'all' || game.categories.includes(selectedCategory);
+            const mechanicMatch = selectedMechanic === 'all' || game.mechanics.includes(selectedMechanic);
+            return categoryMatch && mechanicMatch;
+        });
+        categoryFilteredGames = filteredGames.map((game, index) => ({ ...game, categoryRank: index + 1 }));
         currentPage = 1;
         renderPage();
     }
 
-    function renderPage() {
+    function applySearch(searchTerm) {
+        if (!searchTerm) {
+            applyFilter();
+        } else {
+            const lowerSearchTerm = searchTerm.toLowerCase();
+            const searchFilteredGames = categoryFilteredGames.filter(game => game.name.toLowerCase().includes(lowerSearchTerm));
+            renderPage(searchFilteredGames);
+        }
+    }
+
+    function renderPage(filteredGamesToRender = categoryFilteredGames) {
         container.innerHTML = '';
         const start = (currentPage - 1) * itemsPerPage;
         const end = start + itemsPerPage;
-        const pageItems = filteredGames.slice(start, end);
+        const pageItems = filteredGamesToRender.slice(start, end);
 
-        pageItems.forEach((game) => {
+        pageItems.forEach(game => {
             const gameCardWrapper = document.createElement('div');
             gameCardWrapper.classList.add('game-card-wrapper');
 
             const rankNumber = document.createElement('div');
             rankNumber.classList.add('rank-number');
-            // Display category rank if available, otherwise display overall rank
-            rankNumber.textContent = categoryFilter.value === 'all' ? game.rank || 'Unranked' : game.categoryRank || 'Unranked';
+            rankNumber.textContent = game.categoryRank || game.rank || 'Unranked';
 
             const gameCard = document.createElement('div');
             gameCard.classList.add('game');
@@ -125,7 +142,7 @@ document.addEventListener('DOMContentLoaded', function() {
             gameContent.classList.add('game-content');
 
             const gameImg = document.createElement('img');
-            gameImg.src = game.thumbnail || 'default-thumbnail.png'; // Replace with a default image path if needed
+            gameImg.src = game.thumbnail || 'default-thumbnail.png';
             gameImg.alt = game.name || 'No Image';
 
             const gameInfo = document.createElement('div');
@@ -133,9 +150,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const rating = game.bayes_average ? (game.bayes_average).toFixed(1) : (game.average ? (game.average).toFixed(1) : 'Unrated');
             const complexity = game.average_weight ? `<strong>Complexity:</strong> ${(game.average_weight * 2).toFixed(1)} / 10` : '<strong>Complexity:</strong> Unspecified';
-            const players = game.min_players && game.max_players ? `<strong>Players:</strong> ${game.min_players} - ${game.max_players}` : '<strong>Players:</strong> Unspecified';
-            const playingTime = game.playing_time ? `<strong>Playing Time:</strong> ${game.playing_time} mins` : '<strong>Playing Time:</strong> Unspecified';
-            const age = game.age ? `<strong>Recommended Age:</strong> ${game.age}` : '<strong>Recommended Age:</strong> Unspecified';
+            const players = game.min_players && game.max_players ? `<strong>Players:</strong> ${game.min_players} - ${game.max_players}` : '<strong>Players: Unspecified</strong>';
+            const playingTime = game.playing_time ? `<strong>Playing Time:</strong> ${game.playing_time} mins` : '<strong>Playing Time: Unspecified</strong>';
+            const age = game.age ? `<strong>Recommended Age:</strong> ${game.age}` : '<strong>Recommended Age: Unspecified</strong>';
             const categoriesText = game.categories.length ? game.categories.join(', ') : 'Not specified';
 
             const gameDetails = `
@@ -165,63 +182,109 @@ document.addEventListener('DOMContentLoaded', function() {
             container.appendChild(gameCardWrapper);
         });
 
-        renderPagination();
+        renderPagination(filteredGamesToRender);
     }
 
-    function renderPagination() {
-        pagination.innerHTML = '';
+    function renderPagination(filteredGamesToRender) {
+        topPagination.innerHTML = '';
+        bottomPagination.innerHTML = '';
 
-        const totalPages = Math.ceil(filteredGames.length / itemsPerPage);
+        const totalPages = Math.ceil(filteredGamesToRender.length / itemsPerPage);
 
-        // Page numbers
-        const pageNumbersDiv = document.createElement('div');
-        pageNumbersDiv.classList.add('page-numbers');
+        const createPaginationContent = (paginationElement) => {
+            const pageNumbersDiv = document.createElement('div');
+            pageNumbersDiv.classList.add('page-numbers');
 
-        let startPage = Math.max(currentPage - Math.floor(maxPageButtons / 2), 1);
-        let endPage = Math.min(startPage + maxPageButtons - 1, totalPages);
+            let startPage = Math.max(currentPage - Math.floor(maxPageButtons / 2), 1);
+            let endPage = Math.min(startPage + maxPageButtons - 1, totalPages);
 
-        if (endPage - startPage < maxPageButtons - 1) {
-            startPage = Math.max(endPage - maxPageButtons + 1, 1);
-        }
-
-        for (let i = startPage; i <= endPage; i++) {
-            const pageButton = createPaginationButton(i, i);
-            if (i === currentPage) {
-                pageButton.classList.add('active');
+            if (endPage - startPage < maxPageButtons - 1) {
+                startPage = Math.max(endPage - maxPageButtons + 1, 1);
             }
-            pageNumbersDiv.appendChild(pageButton);
-        }
 
-        pagination.appendChild(pageNumbersDiv);
+            for (let i = startPage; i <= endPage; i++) {
+                const pageButton = createPaginationButton(i, i);
+                if (i === currentPage) {
+                    pageButton.classList.add('active');
+                }
+                pageNumbersDiv.appendChild(pageButton);
+            }
 
-        // Navigation buttons
-        const navButtonsDiv = document.createElement('div');
-        navButtonsDiv.classList.add('nav-buttons');
+            paginationElement.appendChild(pageNumbersDiv);
 
-        if (currentPage > 1) {
+            const navButtonsDiv = document.createElement('div');
+            navButtonsDiv.classList.add('nav-buttons');
+
             const firstButton = createPaginationButton('First', 1);
             const prevButton = createPaginationButton('Previous', currentPage - 1);
-            navButtonsDiv.appendChild(firstButton);
-            navButtonsDiv.appendChild(prevButton);
-        }
-
-        if (currentPage < totalPages) {
             const nextButton = createPaginationButton('Next', currentPage + 1);
             const lastButton = createPaginationButton('Last', totalPages);
+
+            if (currentPage === 1) {
+                firstButton.classList.add('disabled');
+                prevButton.classList.add('disabled');
+            }
+
+            if (currentPage === totalPages) {
+                nextButton.classList.add('disabled');
+                lastButton.classList.add('disabled');
+            }
+
+            navButtonsDiv.appendChild(firstButton);
+            navButtonsDiv.appendChild(prevButton);
             navButtonsDiv.appendChild(nextButton);
             navButtonsDiv.appendChild(lastButton);
-        }
 
-        pagination.appendChild(navButtonsDiv);
+            paginationElement.appendChild(navButtonsDiv);
+
+            const pageInfo = document.createElement('div');
+            pageInfo.classList.add('page-info');
+            pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+            paginationElement.appendChild(pageInfo);
+        };
+
+        createPaginationContent(topPagination);
+        createPaginationContent(bottomPagination);
     }
 
     function createPaginationButton(text, page) {
         const button = document.createElement('button');
         button.textContent = text;
         button.addEventListener('click', () => {
-            currentPage = page;
-            renderPage();
+            if (!button.classList.contains('disabled')) {
+                currentPage = page;
+                renderPage();
+            }
         });
         return button;
     }
+
+    function clearFilters() {
+        categoryFilter.value = 'all';
+        mechanicsFilter.value = 'all';
+        searchInput.value = '';
+        itemsPerPageSelect.value = '25';
+        itemsPerPage = 25;  // Reset items per page to default
+        applyFilter();
+    }
+
+    toggleAdvancedSearchButton.addEventListener('click', () => {
+        const wasVisible = advancedSearch.style.display === 'block';
+        advancedSearch.style.display = wasVisible ? 'none' : 'block';
+        if (wasVisible) {
+            clearFilters();
+        }
+    });
+
+    searchInput.addEventListener('input', () => applySearch(searchInput.value));
+    applyFiltersButton.addEventListener('click', applyFilter);
+    clearFiltersButton.addEventListener('click', clearFilters);
+
+    itemsPerPageSelect.addEventListener('change', (event) => {
+        itemsPerPage = parseInt(event.target.value, 10);
+        currentPage = 1;
+        renderPage();
+    });
+
+    fetchTotalChunks();
 });

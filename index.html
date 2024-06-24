@@ -3,21 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game List</title>
+    <title>Board Game Rankings</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="filter-container">
-        <label for="category-filter">Filter by Category:</label>
+        <input type="text" id="search-input" placeholder="Search...">
+        <button id="toggle-advanced-search">Advanced Search</button>
+        <button id="clear-filters">Clear Filters</button>
+    </div>
+
+    <div id="advanced-search" style="display: none;">
         <select id="category-filter">
             <option value="all">All Categories</option>
         </select>
+        <select id="mechanics-filter">
+            <option value="all">All Mechanics</option>
+        </select>
+        <div class="items-per-page-container">
+            <label for="items-per-page">Items per page:</label>
+            <select id="items-per-page">
+                <option value="10">10</option>
+                <option value="25" selected>25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+        </div>
+        <button id="apply-filters">Apply Filters</button>
     </div>
-    <div class="search-container">
-        <input type="text" id="search-input" placeholder="Search games...">
-    </div>
+
+    <div id="top-pagination" class="pagination"></div>
+
     <div id="game-list" class="container"></div>
-    <div id="pagination" class="pagination"></div>
+
+    <div id="bottom-pagination" class="pagination"></div>
+
     <script src="scripts.js"></script>
 </body>
 </html>

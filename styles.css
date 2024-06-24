@@ -10,18 +10,38 @@ body {
     text-align: center;
 }
 
-.filter-container label {
-    margin-right: 10px;
+.filter-container input {
+    padding: 10px;
     font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    outline: none;
+    width: 200px;
 }
 
-.filter-container select {
+.filter-container button {
+    padding: 10px 15px;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    outline: none;
+    cursor: pointer;
+    margin-left: 5px;
+}
+
+#advanced-search {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+#advanced-search select {
     padding: 10px;
     font-size: 16px;
     border: 1px solid #ddd;
     border-radius: 4px;
     outline: none;
     cursor: pointer;
+    margin-right: 10px;
 }
 
 .container {
@@ -66,14 +86,8 @@ body {
     margin-bottom: 0;
 }
 
-.game-content {
-    display: flex;
-    align-items: center;
-}
-
 .game img {
     max-width: 150px;
-    height: auto;
     border-radius: 4px;
     margin-right: 20px;
 }
@@ -86,11 +100,18 @@ body {
     margin: 5px 0;
 }
 
-.game-info p strong {
-    font-weight: bold;
+.game-content {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
 }
 
-.game-rating, .game-complexity, .game-players, .game-playing-time, .game-age, .game-categories {
+.game-rating, .game-complexity, .game-players, .game-playing-time, .game-age, .game-categories, .game-rank {
+    font-size: 16px;
+    color: #000000;
+}
+
+.game-rank {
     font-size: 16px;
     color: #555;
     margin-top: 10px;
@@ -106,7 +127,7 @@ body {
 .page-numbers {
     display: flex;
     justify-content: center;
-    flex-wrap: wrap;
+    gap: 5px;
 }
 
 .page-numbers button {
@@ -132,6 +153,7 @@ body {
 .nav-buttons {
     display: flex;
     justify-content: center;
+    gap: 5px;
     margin-top: 10px;
 }
 
@@ -145,17 +167,34 @@ body {
     border-radius: 4px;
 }
 
-
-.search-container {
-    margin-bottom: 20px;
-    text-align: center;
+.nav-buttons button.disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
 }
 
-#search-input {
+.page-info {
+    margin-top: 10px;
+    font-size: 16px;
+    color: #555;
+}
+
+.items-per-page-container {
+    display: inline-block;
+    margin-right: 10px;
+}
+
+.items-per-page-container label {
+    margin-right: 5px;
+    font-size: 16px;
+}
+
+.items-per-page-container select {
     padding: 10px;
     font-size: 16px;
     border: 1px solid #ddd;
     border-radius: 4px;
-    width: 50%;
     outline: none;
+    cursor: pointer;
 }
+
+
