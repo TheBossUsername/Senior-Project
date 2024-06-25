@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const publisherSuggestions = document.getElementById('publisher-suggestions');
     let currentPage = 1;
     let itemsPerPage = 25;  // Default items per page
-    const maxPageButtons = 5;
+    const maxPageButtons = 10;
     let games = [];
     let filteredGames = [];
     let categoryFilteredGames = [];
@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function showSuggestions(input, suggestionsContainer, options, setFilterFunction) {
         suggestionsContainer.innerHTML = '';
-        const filteredOptions = options.filter(option => option.toLowerCase().includes(input.toLowerCase())).slice(0, 10);
+        const filteredOptions = options.filter(option => option.toLowerCase().includes(input.toLowerCase())).slice(0, 5);
         filteredOptions.forEach(option => {
             const suggestionElement = document.createElement('div');
             suggestionElement.textContent = option.length > 20 ? `${option.slice(0, 17)}...` : option;
