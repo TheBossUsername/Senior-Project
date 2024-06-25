@@ -4,22 +4,30 @@ document.addEventListener('DOMContentLoaded', function() {
     const bottomPagination = document.getElementById('bottom-pagination');
     const categoryFilter = document.getElementById('category-filter');
     const mechanicsFilter = document.getElementById('mechanics-filter');
+    const publisherFilter = document.getElementById('publisher-filter');
     const searchInput = document.getElementById('search-input');
     const toggleAdvancedSearchButton = document.getElementById('toggle-advanced-search');
     const advancedSearch = document.getElementById('advanced-search');
     const clearFiltersButton = document.getElementById('clear-filters');
     const itemsPerPageSelect = document.getElementById('items-per-page');
-    let pageNumberSelected = false;
+    const categoryFilterInput = document.getElementById('category-filter-input');
+    const mechanicsFilterInput = document.getElementById('mechanics-filter-input');
+    const publisherFilterInput = document.getElementById('publisher-filter-input');
+    const categorySuggestions = document.getElementById('category-suggestions');
+    const mechanicsSuggestions = document.getElementById('mechanics-suggestions');
+    const publisherSuggestions = document.getElementById('publisher-suggestions');
     let currentPage = 1;
     let itemsPerPage = 25;  // Default items per page
     const maxPageButtons = 5;
     let games = [];
     let filteredGames = [];
     let categoryFilteredGames = [];
+    let allCategories = [];
+    let allMechanics = [];
+    let allPublishers = [];
 
     let totalChunks = 0;
     let loadedChunks = 0;
-    
 
     function fetchTotalChunks() {
         return fetch('chunk_count.json')
@@ -50,7 +58,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 games = games.concat(data.map(game => ({
                     ...game,
                     categories: game.categories ? game.categories.split(',').map(c => c.trim()) : [],
-                    mechanics: game.mechanics ? game.mechanics.split(',').map(m => m.trim()) : []
+                    mechanics: game.mechanics ? game.mechanics.split(',').map(m => m.trim()) : [],
+                    publishers: game.publishers ? game.publishers.split(',').map(p => p.trim()) : []
                 })));
                 loadedChunks++;
                 if (loadedChunks === totalChunks) {
@@ -75,33 +84,124 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function populateFilters() {
-        const categories = [...new Set(games.flatMap(game => game.categories || []))].sort((a, b) => a.localeCompare(b));
-        categories.forEach(category => {
+        allCategories = [...new Set(games.flatMap(game => game.categories || []))].sort((a, b) => a.localeCompare(b));
+        allCategories.forEach(category => {
             const option = document.createElement('option');
             option.value = category;
             option.textContent = category;
             categoryFilter.appendChild(option);
         });
 
-        const mechanics = [...new Set(games.flatMap(game => game.mechanics || []))].sort((a, b) => a.localeCompare(b));
-        mechanics.forEach(mechanic => {
+        allMechanics = [...new Set(games.flatMap(game => game.mechanics || []))].sort((a, b) => a.localeCompare(b));
+        allMechanics.forEach(mechanic => {
             const option = document.createElement('option');
             option.value = mechanic;
             option.textContent = mechanic;
             mechanicsFilter.appendChild(option);
         });
+
+        const publisherCounts = games.reduce((acc, game) => {
+            game.publishers.forEach(publisher => {
+                if (!acc[publisher]) {
+                    acc[publisher] = 0;
+                }
+                acc[publisher]++;
+            });
+            return acc;
+        }, {});
+
+        allPublishers = Object.keys(publisherCounts).sort((a, b) => publisherCounts[b] - publisherCounts[a]);
+        allPublishers.forEach(publisher => {
+            const option = document.createElement('option');
+            option.value = publisher;
+            option.textContent = publisher.length > 20 ? `${publisher.slice(0, 17)}...` : publisher;
+            option.title = publisher;
+            publisherFilter.appendChild(option);
+        });
     }
+
+    categoryFilterInput.addEventListener('input', () => {
+        if (categoryFilterInput.value === '') {
+            categorySuggestions.innerHTML = '';
+        } else {
+            showSuggestions(categoryFilterInput.value, categorySuggestions, allCategories, setCategoryFilter);
+        }
+    });
+
+    mechanicsFilterInput.addEventListener('input', () => {
+        if (mechanicsFilterInput.value === '') {
+            mechanicsSuggestions.innerHTML = '';
+        } else {
+            showSuggestions(mechanicsFilterInput.value, mechanicsSuggestions, allMechanics, setMechanicFilter);
+        }
+    });
+
+    publisherFilterInput.addEventListener('input', () => {
+        if (publisherFilterInput.value === '') {
+            publisherSuggestions.innerHTML = '';
+        } else {
+            showSuggestions(publisherFilterInput.value, publisherSuggestions, allPublishers, setPublisherFilter);
+        }
+    });
+
+    function showSuggestions(input, suggestionsContainer, options, setFilterFunction) {
+        suggestionsContainer.innerHTML = '';
+        const filteredOptions = options.filter(option => option.toLowerCase().includes(input.toLowerCase())).slice(0, 10);
+        filteredOptions.forEach(option => {
+            const suggestionElement = document.createElement('div');
+            suggestionElement.textContent = option.length > 20 ? `${option.slice(0, 17)}...` : option;
+            suggestionElement.title = option;
+            suggestionElement.addEventListener('click', () => {
+                setFilterFunction(option);
+                suggestionsContainer.innerHTML = '';
+            });
+            suggestionsContainer.appendChild(suggestionElement);
+        });
+    }
+
+    function setCategoryFilter(category) {
+        categoryFilter.value = category;
+        categoryFilterInput.value = category;
+        applyFilter();
+    }
+
+    function setMechanicFilter(mechanic) {
+        mechanicsFilter.value = mechanic;
+        mechanicsFilterInput.value = mechanic;
+        applyFilter();
+    }
+
+    function setPublisherFilter(publisher) {
+        publisherFilter.value = publisher;
+        publisherFilterInput.value = publisher;
+        applyFilter();
+    }
+
+    document.addEventListener('click', function(event) {
+        if (!categoryFilterInput.contains(event.target) && !categorySuggestions.contains(event.target)) {
+            categorySuggestions.innerHTML = '';
+        }
+        if (!mechanicsFilterInput.contains(event.target) && !mechanicsSuggestions.contains(event.target)) {
+            mechanicsSuggestions.innerHTML = '';
+        }
+        if (!publisherFilterInput.contains(event.target) && !publisherSuggestions.contains(event.target)) {
+            publisherSuggestions.innerHTML = '';
+        }
+    });
 
     categoryFilter.addEventListener('change', applyFilter);
     mechanicsFilter.addEventListener('change', applyFilter);
+    publisherFilter.addEventListener('change', applyFilter);
 
     function applyFilter() {
         const selectedCategory = categoryFilter.value;
         const selectedMechanic = mechanicsFilter.value;
+        const selectedPublisher = publisherFilter.value;
         filteredGames = games.filter(game => {
             const categoryMatch = selectedCategory === 'all' || game.categories.includes(selectedCategory);
             const mechanicMatch = selectedMechanic === 'all' || game.mechanics.includes(selectedMechanic);
-            return categoryMatch && mechanicMatch;
+            const publisherMatch = selectedPublisher === 'all' || game.publishers.includes(selectedPublisher);
+            return categoryMatch && mechanicMatch && publisherMatch;
         });
         categoryFilteredGames = filteredGames.map((game, index) => ({ ...game, categoryRank: index + 1 }));
         currentPage = 1;
@@ -167,7 +267,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
             gameInfo.innerHTML = gameDetails;
     
-            if (categoryFilter.value !== 'all' || mechanicsFilter.value !== 'all') {
+            if (categoryFilter.value !== 'all' || mechanicsFilter.value !== 'all' || publisherFilter.value !== 'all') {
                 const gameRank = document.createElement('p');
                 gameRank.classList.add('game-rank');
                 gameRank.innerHTML = `<p class="game-overall"><strong>Overall Rank:</strong> ${game.rank || 'Unranked'}</p>`;
@@ -186,22 +286,18 @@ document.addEventListener('DOMContentLoaded', function() {
         renderPagination(filteredGamesToRender);
     
         // Scroll to the top based on the condition
-        if (pageNumberSelected) {
-            topPagination.scrollIntoView({ behavior: 'instant' });
-        } else {
-            window.scrollTo(0,0,{ behavior: 'instant' });
-        }
+        window.scrollTo(0,0,{ behavior: 'instant' });
     
         // Reset the flag
         pageNumberSelected = false;
     }
-    
 
     function renderPagination(filteredGamesToRender) {
         topPagination.innerHTML = '';
         bottomPagination.innerHTML = '';
 
         const totalPages = Math.ceil(filteredGamesToRender.length / itemsPerPage);
+        const totalGames = filteredGamesToRender.length;
 
         const createPaginationContent = (paginationElement) => {
             const pageNumbersDiv = document.createElement('div');
@@ -249,6 +345,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             paginationElement.appendChild(navButtonsDiv);
 
+            const totalGamesInfo = document.createElement('div');
+            totalGamesInfo.classList.add('total-games-info');
+            totalGamesInfo.textContent = `Total Games: ${totalGames}`;
+            paginationElement.appendChild(totalGamesInfo);
+
             const pageInfo = document.createElement('div');
             pageInfo.classList.add('page-info');
             pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
@@ -275,7 +376,14 @@ document.addEventListener('DOMContentLoaded', function() {
     function clearFilters() {
         categoryFilter.value = 'all';
         mechanicsFilter.value = 'all';
+        publisherFilter.value = 'all';
         searchInput.value = '';
+        categoryFilterInput.value = '';
+        mechanicsFilterInput.value = '';
+        publisherFilterInput.value = '';
+        categorySuggestions.innerHTML = '';
+        mechanicsSuggestions.innerHTML = '';
+        publisherSuggestions.innerHTML = '';
         itemsPerPageSelect.value = '25';
         itemsPerPage = 25;  // Reset items per page to default
         applyFilter();
@@ -299,4 +407,21 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     fetchTotalChunks();
+
+    const backToTopButton = document.getElementById('back-to-top');
+    
+    // Show the button when the user scrolls down 20px from the top
+    window.onscroll = function() {
+        if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+            backToTopButton.style.display = "block";
+        } else {
+            backToTopButton.style.display = "none";
+        }
+    };
+    
+    // Scroll to the top of the document when the button is clicked
+    backToTopButton.addEventListener('click', function() {
+        document.body.scrollTop = 0; // For Safari
+        document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE, and Opera
+    });
 });

@@ -14,12 +14,27 @@
     </div>
 
     <div id="advanced-search" style="display: none;">
-        <select id="category-filter">
-            <option value="all">All Categories</option>
-        </select>
-        <select id="mechanics-filter">
-            <option value="all">All Mechanics</option>
-        </select>
+        <div class="filter-wrapper">
+            <select id="category-filter">
+                <option value="all">All Categories</option>
+            </select>
+            <input type="text" id="category-filter-input" placeholder="Filter Categories...">
+            <div id="category-suggestions" class="suggestions"></div>
+        </div>
+        <div class="filter-wrapper">
+            <select id="mechanics-filter">
+                <option value="all">All Mechanics</option>
+            </select>
+            <input type="text" id="mechanics-filter-input" placeholder="Filter Mechanics...">
+            <div id="mechanics-suggestions" class="suggestions"></div>
+        </div>
+        <div class="filter-wrapper">
+            <select id="publisher-filter">
+                <option value="all">All Publishers</option>
+            </select>
+            <input type="text" id="publisher-filter-input" placeholder="Filter Publishers...">
+            <div id="publisher-suggestions" class="suggestions"></div>
+        </div>
         <div class="items-per-page-container">
             <label for="items-per-page">Items per page:</label>
             <select id="items-per-page">
@@ -37,6 +52,8 @@
 
     <div id="bottom-pagination" class="pagination"></div>
 
+    <button id="back-to-top" class="back-to-top">Back to Top</button>
+    
     <script src="scripts.js"></script>
 </body>
 </html>
