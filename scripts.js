@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const publisherSuggestions = document.getElementById('publisher-suggestions');
     let currentPage = 1;
     let itemsPerPage = 25;  // Default items per page
-    const maxPageButtons = 10;
+    const maxPageButtons = 5;
     let games = [];
     let filteredGames = [];
     let categoryFilteredGames = [];
