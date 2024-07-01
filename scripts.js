@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const mechanicsSuggestions = document.getElementById('mechanics-suggestions');
     const publisherSuggestions = document.getElementById('publisher-suggestions');
     let currentPage = 1;
-    let itemsPerPage = 25;  // Default items per page
+    let itemsPerPage = 25;  
     const maxPageButtons = 5;
     let games = [];
     let filteredGames = [];
@@ -197,12 +197,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedCategory = categoryFilter.value;
         const selectedMechanic = mechanicsFilter.value;
         const selectedPublisher = publisherFilter.value;
+        const minComplexity = minComplexityFilter.value ? parseFloat(minComplexityFilter.value) : 0;
+        const maxComplexity = maxComplexityFilter.value ? parseFloat(maxComplexityFilter.value) : 10;
+        
         filteredGames = games.filter(game => {
             const categoryMatch = selectedCategory === 'all' || game.categories.includes(selectedCategory);
             const mechanicMatch = selectedMechanic === 'all' || game.mechanics.includes(selectedMechanic);
             const publisherMatch = selectedPublisher === 'all' || game.publishers.includes(selectedPublisher);
-            return categoryMatch && mechanicMatch && publisherMatch;
+            const complexitySpecified = game.average_weight !== undefined && game.average_weight !== null;
+            const complexityMatch = complexitySpecified && (game.average_weight * 2 >= minComplexity && game.average_weight * 2 <= maxComplexity);
+            return categoryMatch && mechanicMatch && publisherMatch && (!minComplexityFilter.value && !maxComplexityFilter.value ? true : complexityMatch);
         });
+        
         categoryFilteredGames = filteredGames.map((game, index) => ({ ...game, categoryRank: index + 1 }));
         currentPage = 1;
         renderPage();
@@ -267,12 +273,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
             gameInfo.innerHTML = gameDetails;
     
-            if (categoryFilter.value !== 'all' || mechanicsFilter.value !== 'all' || publisherFilter.value !== 'all') {
+            if (categoryFilter.value !== 'all' || mechanicsFilter.value !== 'all' || publisherFilter.value !== 'all' || minComplexityFilter.value != '' || maxComplexityFilter.value != '') {
                 const gameRank = document.createElement('p');
                 gameRank.classList.add('game-rank');
                 gameRank.innerHTML = `<p class="game-overall"><strong>Overall Rank:</strong> ${game.rank || 'Unranked'}</p>`;
                 gameInfo.appendChild(gameRank);
             }
+
+            gameCard.addEventListener('click', () => handleGameClick(game));
     
             gameContent.appendChild(gameImg);
             gameContent.appendChild(gameInfo);
@@ -385,7 +393,10 @@ document.addEventListener('DOMContentLoaded', function() {
         mechanicsSuggestions.innerHTML = '';
         publisherSuggestions.innerHTML = '';
         itemsPerPageSelect.value = '25';
-        itemsPerPage = 25;  // Reset items per page to default
+        itemsPerPage = 25;  
+        minComplexityFilter.value = '';
+        maxComplexityFilter.value = '';
+        applyComplexityFilter(); 
         applyFilter();
     }
 
@@ -424,4 +435,43 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.scrollTop = 0; // For Safari
         document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE, and Opera
     });
+
+   
+    const minComplexityFilter = document.getElementById('min-complexity-filter');
+    const maxComplexityFilter = document.getElementById('max-complexity-filter');
+    
+    function applyComplexityFilter() {
+        const minComplexity = minComplexityFilter.value ? parseInt(minComplexityFilter.value) : 0;
+        const maxComplexity = maxComplexityFilter.value ? parseInt(maxComplexityFilter.value) : 10;
+        
+        if (minComplexity > maxComplexity) return;
+        
+        maxComplexityFilter.querySelectorAll('option').forEach(option => {
+            option.disabled = parseInt(option.value) < minComplexity;
+        });
+        
+        minComplexityFilter.querySelectorAll('option').forEach(option => {
+            option.disabled = parseInt(option.value) > maxComplexity;
+        });
+    }
+    
+    minComplexityFilter.addEventListener('change', () => {
+        applyComplexityFilter();
+        applyFilter();
+    });
+    
+    maxComplexityFilter.addEventListener('change', () => {
+        applyComplexityFilter();
+        applyFilter();
+    });
+    
+        
+    function handleGameClick(game) {
+        const queryParams = new URLSearchParams({
+            id: game.id
+        });
+        window.location.href = `game.html?${queryParams.toString()}`;
+    }
+ 
+    
 });

@@ -37,7 +37,7 @@ body {
     margin-bottom: 10px;
 }
 
-.filter-wrapper select{
+.filter-wrapper select {
     width: 221px;
     display: block;
 }
@@ -269,4 +269,13 @@ body {
 
 .suggestions div:hover {
     background-color: #f0f0f0;
+}
+
+.complexity-filters {
+    display: inline-flex;
+    vertical-align: top;
+}
+
+.complexity-filters select {
+    margin-right: 5px;
 }
